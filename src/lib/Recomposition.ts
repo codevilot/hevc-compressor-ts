@@ -16,7 +16,7 @@ export const recomposeVideo= async(file: File) =>{
   }
   
   await dom.setCanvas(file)
-  while(timeStamp < 2){
+  while(timeStamp < dom.Video.duration){
     await dom.nextFrame(FPS)
     timeStamp += 1/FPS  
     const frame = dom.getFrame()

@@ -1,6 +1,6 @@
 import { dom } from './lib/dom';
 import { id } from './constants';
-import { recomposeVideo } from './lib/videoRecomposition';
+import { recomposeVideo } from './lib/Recomposition';
 
 /**
  * dom에서 얻어온 HTMLElement는 대문자로 시작한다
