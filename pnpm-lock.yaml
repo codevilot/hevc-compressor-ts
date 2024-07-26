@@ -14,16 +14,10 @@ importers:
       eslint-config-airbnb-base:
         specifier: ^15.0.0
         version: 15.0.0(eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@4.9.5))(eslint@8.57.0))(eslint@8.57.0)
-      jquery:
-        specifier: ^3.6.3
-        version: 3.7.1
     devDependencies:
       '@types/jest':
         specifier: ^29.4.0
         version: 29.5.12
-      '@types/jquery':
-        specifier: ^3.5.16
-        version: 3.5.30
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.45.0
         version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@4.9.5))(eslint@8.57.0)(typescript@4.9.5)
@@ -457,9 +451,6 @@ packages:
   '@types/jest@29.5.12':
     resolution: {integrity: sha512-eDC8bTvT/QhYdxJAulQikueigY5AsdBRH2yDKW3yveW7svY3+DzN84/2NUgkw10RTiJbWqZrTtoGVdYlvFJdLw==}
 
-  '@types/jquery@3.5.30':
-    resolution: {integrity: sha512-nbWKkkyb919DOUxjmRVk8vwtDb0/k8FKncmUKFi+NY+QXqWltooxTrswvz4LspQwxvLdvzBN1TImr6cw3aQx2A==}
-
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
@@ -495,9 +486,6 @@ packages:
 
   '@types/serve-static@1.15.7':
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
-
-  '@types/sizzle@2.3.8':
-    resolution: {integrity: sha512-0vWLNK2D5MT9dg0iOo8GlKguPAU02QjmZitPEsXRuJXU/OGIOt9vT9Fc26wtYuavLxtO45v9PGleoL9Z0k1LHg==}
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
@@ -2041,9 +2029,6 @@ packages:
     peerDependenciesMeta:
       node-notifier:
         optional: true
-
-  jquery@3.7.1:
-    resolution: {integrity: sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -3660,10 +3645,6 @@ snapshots:
       expect: 29.7.0
       pretty-format: 29.7.0
 
-  '@types/jquery@3.5.30':
-    dependencies:
-      '@types/sizzle': 2.3.8
-
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
@@ -3700,8 +3681,6 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 20.14.11
       '@types/send': 0.17.4
-
-  '@types/sizzle@2.3.8': {}
 
   '@types/sockjs@0.3.36':
     dependencies:
@@ -5705,8 +5684,6 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - ts-node
-
-  jquery@3.7.1: {}
 
   js-tokens@4.0.0: {}
 
