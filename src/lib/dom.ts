@@ -1,9 +1,11 @@
 class DOM {
   private video: HTMLVideoElement | undefined;
+  private processedVideo: HTMLVideoElement | undefined;
   private canvas: HTMLCanvasElement | undefined;
   private context: CanvasRenderingContext2D | undefined;
   constructor() {
     this.video;
+    this.processedVideo;
     this.canvas;
     this.context;
   }
@@ -16,6 +18,13 @@ class DOM {
         'original-video'
       ) as HTMLVideoElement;
     return this.video;
+  }
+  public get ProcessedVideo() {
+    if (!this.processedVideo)
+      this.processedVideo = document.getElementById(
+        'processed-video'
+      ) as HTMLVideoElement;
+    return this.processedVideo;
   }
   public get Canvas() {
     if (!this.canvas) this.canvas = document.createElement('canvas');

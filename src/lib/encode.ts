@@ -1,15 +1,13 @@
 import { dom } from './dom';
-import { encodeCTUS } from './encode.ctu';
+import { CTU, encodeCTUS } from './encode.ctu';
 import { encodeDCT } from './encode.DCT';
 
 const FPS = 30;
-
+export type encodedResult = CTU[];
 export const exportFrames = async (file: File): Promise<ImageData[]> => {
   let timeStamp = 0;
   const frames: ImageData[] = [];
 
-  await dom.setCanvas(file);
-  // Frame Extraction
   while (timeStamp < dom.Video.duration) {
     await dom.nextFrame(FPS);
     timeStamp += 1 / FPS;
@@ -19,7 +17,7 @@ export const exportFrames = async (file: File): Promise<ImageData[]> => {
   return frames;
 };
 const DEFAULT_CTU_SIZE = 16;
-export const encode = async (file: File) => {
+export const encode = async (file: File): Promise<encodedResult> => {
   const frames = await exportFrames(file);
   const ctus = encodeCTUS(frames, DEFAULT_CTU_SIZE);
   // const predict = encodePredict(ctus);

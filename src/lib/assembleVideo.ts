@@ -1,5 +1,4 @@
-import { decode } from './decode';
-import { encode } from './encode';
+import { dom } from './dom';
 
 async function assembleVideoFromFrames(
   decodedFrames: ImageData[],
@@ -41,12 +40,10 @@ async function assembleVideoFromFrames(
     drawNextFrame();
   });
 }
-async function createVideoFromDecodedFrames(decodedFrames: ImageData[]) {
+export async function createVideoFromDecodedFrames(decodedFrames: ImageData[]) {
   try {
     const videoBlob = await assembleVideoFromFrames(decodedFrames, 30); // 30 FPS로 설정
-    const processedVideo = document.getElementById(
-      'processed-video'
-    ) as HTMLVideoElement;
+    const processedVideo = dom.ProcessedVideo;
     processedVideo.src = URL.createObjectURL(videoBlob);
     processedVideo.controls = true;
 
@@ -55,9 +52,3 @@ async function createVideoFromDecodedFrames(decodedFrames: ImageData[]) {
     console.error('비디오 재구성 중 오류 발생:', error);
   }
 }
-
-export const recomposeVideo = async (file: File) => {
-  const encodedImageData = await encode(file);
-  const decodeData = await decode(encodedImageData);
-  createVideoFromDecodedFrames(decodeData);
-};
