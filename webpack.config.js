@@ -22,13 +22,18 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.worker\.ts$/,
+        use: { loader: 'worker-loader' },
+        type: 'javascript/auto',
+      },
     ],
   },
-  plugins: [new HtmlWebpackPlugin({
-    template: 'src/index.html',
-    chunks: [],
-  }),
-
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: 'src/index.html',
+      chunks: [],
+    }),
   ],
   output: {
     path: path.resolve(__dirname, 'dist'),

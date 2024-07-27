@@ -1,4 +1,4 @@
-import { CTU } from './encode.ctu';
+import { CTU } from './ctu';
 
 function intraPrediction(
   ctu: CTU,

@@ -1,3 +1,4 @@
+const FPS = 30;
 class DOM {
   private video: HTMLVideoElement | undefined;
   private processedVideo: HTMLVideoElement | undefined;
@@ -60,6 +61,18 @@ class DOM {
   }
   public getFrame() {
     return this.ctx.getImageData(0, 0, this.Canvas.width, this.Canvas.height);
+  }
+  public async exportFrames() {
+    let timeStamp = 0;
+    const frames: ImageData[] = [];
+
+    while (timeStamp < dom.Video.duration) {
+      await dom.nextFrame(FPS);
+      timeStamp += 1 / FPS;
+      const frame = dom.getFrame();
+      frames.push(frame);
+    }
+    return frames;
   }
 }
 

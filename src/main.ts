@@ -1,12 +1,18 @@
 import { dom } from './lib/dom';
 import { id } from './constants';
-import { encode, encodedResult } from './lib/encode';
-import { decode } from './lib/decode';
 import { createVideoFromDecodedFrames } from './lib/assembleVideo';
+import { videoProcessor } from './lib/worker';
+import { convertToImageDataArray } from './lib/convertToImageDataArray';
+import { CTU } from './encode/ctu';
+import { encodedResult } from './encode/worker';
 
 /**
  * dom에서 얻어온 HTMLElement는 대문자로 시작한다
  */
+
+type workerId = MessageEvent & {
+  data: { workName: 'encode-end'; data: CTU[] } | { workName: 'decoderWorker' };
+};
 const UploadInput = <HTMLInputElement>dom.id(id.uploadInput);
 const EncodeBtn = <HTMLButtonElement>dom.id(id.encodeButton);
 const DecodeBtn = <HTMLButtonElement>dom.id(id.decodeButton);
@@ -19,13 +25,15 @@ let encodedData: encodedResult = undefined;
     const target = event.target as HTMLInputElement;
     const [file] = target.files;
     if (!(file && file.type.startsWith('video/'))) return;
+    uploadedFile = file;
     dom.ProcessedVideo.src = '';
     EncodeBtn.disabled = !file;
     await dom.setCanvas(file);
   });
   EncodeBtn.addEventListener('click', async () => {
     try {
-      encodedData = await encode(uploadedFile);
+      const frames = await dom.exportFrames();
+      videoProcessor.encodeVideo(frames);
       DecodeBtn.disabled = false;
     } catch (e) {
       console.error(e);
@@ -33,10 +41,22 @@ let encodedData: encodedResult = undefined;
   });
   DecodeBtn.addEventListener('click', async () => {
     try {
-      const decodedData = await decode(encodedData);
-      createVideoFromDecodedFrames(decodedData);
+      videoProcessor.decodeVideo(encodedData);
+      // const decodedData = await decode(encodedData);
     } catch (e) {
       console.error(e);
     }
   });
+  videoProcessor.encodeWorker.onmessage = (event: workerId) => {
+    if (event.data.workName === 'encode-end') {
+      encodedData = event.data.data;
+    }
+    console.log(encodedData);
+  };
+  videoProcessor.decodeWorker.onmessage = (event: workerId) => {
+    if (event.data.workName === 'decode-end') {
+      const imageDataArray = convertToImageDataArray(event.data.data);
+      createVideoFromDecodedFrames(imageDataArray);
+    }
+  };
 })();
