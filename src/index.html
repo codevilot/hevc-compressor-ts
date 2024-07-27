@@ -12,17 +12,53 @@
   </head>
   <body>
     <main>
-      <h1>Video Encoder TS</h1>
+      <h1 class="text-3xl font-bold mb-6 text-center text-blue-600 pt-10">
+        Video Encoder TS
+      </h1>
+      <div class="mb-6 flex justify-center space-x-4">
+        <label
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
+        >
+          UPLOAD
+          <input
+            id="upload-input"
+            type="file"
+            accept="video/*"
+            class="hidden"
+          />
+        </label>
+        <button
+          class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          id="encodeBtn"
+        >
+          ENCODE
+        </button>
+        <button
+          class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+          id="decodeBtn"
+        >
+          DECODE
+        </button>
+        <button
+          class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+          id="playBothBtn"
+          onclick="document.querySelectorAll('video').forEach(video => video.play());"
+        >
+          Play All
+        </button>
+      </div>
+
+      <div class="flex justify-between space-x-4 px-4">
+        <div class="w-1/2">
+          <h2 class="text-xl font-semibold mb-2">원본 영상</h2>
+          <video id="original-video" class="w-full h-auto" controls></video>
+        </div>
+        <div class="w-1/2">
+          <h2 class="text-xl font-semibold mb-2">처리된 영상</h2>
+          <video id="processed-video" class="w-full h-auto" controls></video>
+        </div>
+      </div>
     </main>
-    <button
-      onclick="document.querySelectorAll('video').forEach(video => video.play());"
-    >
-      Play All Videos
-    </button>
-    <input id="upload-input" type="file" accept="video/*" />
-    <div class="w-screen flex-row flex" id="editor">
-      <!-- <video id="raw-video" class="w-6/12" controls></video> -->
-    </div>
 
     <script src="/main.js"></script>
   </body>
