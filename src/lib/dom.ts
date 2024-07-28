@@ -4,11 +4,37 @@ class DOM {
   private processedVideo: HTMLVideoElement | undefined;
   private canvas: HTMLCanvasElement | undefined;
   private context: CanvasRenderingContext2D | undefined;
-  constructor() {
-    this.video;
-    this.processedVideo;
-    this.canvas;
-    this.context;
+  private modal: HTMLElement | undefined;
+  private modalTitle: HTMLElement | undefined;
+  private dynamicProgress: HTMLElement | undefined;
+  private progressText: HTMLElement | undefined;
+  constructor() {}
+  public openModal(title?: string) {
+    this.ModalTitle.innerText = title || '';
+    return this.Modal.classList.remove('hidden');
+  }
+
+  public closeModal() {
+    return this.Modal.classList.add('hidden');
+  }
+  public get DynamicProgress() {
+    if (!this.dynamicProgress)
+      this.dynamicProgress = document.getElementById('dynamic-progress');
+    return this.dynamicProgress;
+  }
+  public get ProgressText() {
+    if (!this.progressText)
+      this.progressText = document.getElementById('progress-text');
+    return this.progressText;
+  }
+  public get ModalTitle() {
+    if (!this.modalTitle)
+      this.modalTitle = document.getElementById('modal-title');
+    return this.modalTitle;
+  }
+  public get Modal() {
+    if (!this.modal) this.modal = document.getElementById('modal');
+    return this.modal;
   }
   public id(id: string) {
     return document.getElementById(id);
@@ -53,11 +79,20 @@ class DOM {
   }
   public nextFrame(FPS: number) {
     this.Video.currentTime += 1 / FPS;
+    const progressStep = Math.floor(
+      (this.Video.currentTime / this.Video.duration) * 100
+    );
+    this.updateProgress(progressStep);
+
     return new Promise((res) => {
       dom.Video.onseeked = () => {
         res(this.drawVideo());
       };
     });
+  }
+  public updateProgress(progress: number) {
+    this.DynamicProgress.style.width = `${progress}%`;
+    this.ProgressText.textContent = `${progress}`;
   }
   public getFrame() {
     return this.ctx.getImageData(0, 0, this.Canvas.width, this.Canvas.height);

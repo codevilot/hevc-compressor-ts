@@ -45,7 +45,6 @@ export async function createVideoFromDecodedFrames(decodedFrames: ImageData[]) {
     const videoBlob = await assembleVideoFromFrames(decodedFrames, 30); // 30 FPS로 설정
     const processedVideo = dom.ProcessedVideo;
     processedVideo.src = URL.createObjectURL(videoBlob);
-    processedVideo.controls = true;
 
     console.log('비디오 재구성이 완료되었습니다.');
   } catch (error) {

@@ -3,4 +3,5 @@ export const id = {
   rawVideo: 'raw-video',
   encodeButton: 'encode-button',
   decodeButton: 'decode-button',
+  playAllButton: 'play-all-button',
 } as const;

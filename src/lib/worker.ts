@@ -21,7 +21,6 @@ class VideoProcessor {
       data: imageData.data.buffer,
     }));
     const buffers = transferableArray.map((item) => item.data);
-
     for (let i = 0; i < buffers.length; i += CHUNK_SIZE) {
       this.encodeWorker.postMessage(
         {
@@ -36,6 +35,8 @@ class VideoProcessor {
 
   public decodeVideo(encodedData: encodedResult) {
     for (let i = 0; i < encodedData.length; i += CHUNK_SIZE) {
+      const progressStep = Math.floor((i / encodedData.length) * 100);
+      dom.updateProgress(progressStep);
       this.decodeWorker.postMessage({
         type: 'chunk',
         encodedData: encodedData.slice(i, i + CHUNK_SIZE),

@@ -23,9 +23,9 @@ decodeCtx.addEventListener('message', async (event: MessageEvent) => {
       for (let i = 0; i < result.length; i += CHUNK_SIZE) {
         const chunk = result.slice(i, i + CHUNK_SIZE);
         decodeCtx.postMessage({
-          workName: 'decode-end',
+          workName: i === 0 ? 'decode-end-0' : 'decode-end',
           data: chunk,
-          isLastChunk: i + CHUNK_SIZE >= result.length,
+          progress: Math.floor(((i + CHUNK_SIZE) / result.length) * 100),
         });
       }
       savedDataChunk = [];
