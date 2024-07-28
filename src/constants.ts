@@ -5,3 +5,5 @@ export const id = {
   decodeButton: 'decode-button',
   playAllButton: 'play-all-button',
 } as const;
+
+export const FPS = 30;

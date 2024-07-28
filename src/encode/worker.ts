@@ -2,7 +2,6 @@ import { CTU, encodeCTUS } from './ctu';
 
 export const encodeCtx: Worker = self as any;
 
-const FPS = 30;
 export type encodedResult = CTU[];
 
 const DEFAULT_CTU_SIZE = 16;

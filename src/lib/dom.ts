@@ -1,4 +1,5 @@
-const FPS = 30;
+import { FPS } from '../constants';
+
 class DOM {
   private video: HTMLVideoElement | undefined;
   private processedVideo: HTMLVideoElement | undefined;
@@ -76,15 +77,16 @@ class DOM {
   }
   public drawVideo() {
     this.ctx.drawImage(this.Video, 0, 0, this.Canvas.width, this.Canvas.height);
+    return this.ctx.getImageData(0, 0, this.Canvas.width, this.Canvas.height);
   }
-  public nextFrame(FPS: number) {
-    this.Video.currentTime += 1 / FPS;
+  public nextFrame(FPS: number): Promise<ImageData> {
     const progressStep = Math.floor(
       (this.Video.currentTime / this.Video.duration) * 100
     );
     this.updateProgress(progressStep);
 
     return new Promise((res) => {
+      this.Video.currentTime += 1 / FPS;
       dom.Video.onseeked = () => {
         res(this.drawVideo());
       };
@@ -94,17 +96,12 @@ class DOM {
     this.DynamicProgress.style.width = `${progress}%`;
     this.ProgressText.textContent = `${progress}`;
   }
-  public getFrame() {
-    return this.ctx.getImageData(0, 0, this.Canvas.width, this.Canvas.height);
-  }
-  public async exportFrames() {
-    let timeStamp = 0;
-    const frames: ImageData[] = [];
 
-    while (timeStamp < dom.Video.duration) {
-      await dom.nextFrame(FPS);
-      timeStamp += 1 / FPS;
-      const frame = dom.getFrame();
+  public async exportFrames() {
+    const frames: ImageData[] = [this.drawVideo()];
+
+    while (this.Video.currentTime < this.Video.duration) {
+      const frame = await dom.nextFrame(FPS);
       frames.push(frame);
     }
     return frames;
