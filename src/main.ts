@@ -67,7 +67,6 @@ let decodeChunk: decodedData = [];
       if (event.data.progress === 100) {
         const imageDataArray = convertToImageDataArray(decodeChunk);
         createVideoFromDecodedFrames(imageDataArray);
-        dom.closeModal();
         DecodeBtn.disabled = true;
         decodeChunk = [];
         PlayAllBtn.disabled = false;

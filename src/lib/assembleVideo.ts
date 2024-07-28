@@ -20,7 +20,6 @@ async function assembleVideoFromFrames(
 
     mediaRecorder.ondataavailable = (event) => chunks.push(event.data);
     mediaRecorder.onstop = () => {
-      console.log('media record is stopped');
       const blob = new Blob(chunks, { type: 'video/mp4' });
       resolve(blob);
     };
@@ -34,6 +33,7 @@ async function assembleVideoFromFrames(
         Math.floor(elapsedTime / frameDuration) - 2,
         0
       );
+      dom.updateProgress(Math.floor(frameIndex / decodedFrames.length) * 100);
       if (frameIndex >= decodedFrames.length) return mediaRecorder.stop();
       ctx.putImageData(decodedFrames[frameIndex], 0, 0);
       requestAnimationFrame(drawNextFrame);
@@ -45,10 +45,13 @@ async function assembleVideoFromFrames(
 }
 export async function createVideoFromDecodedFrames(decodedFrames: ImageData[]) {
   try {
+    dom.openModal('Creating video...');
     const videoBlob = await assembleVideoFromFrames(decodedFrames); // 30 FPS로 설정
     const processedVideo = dom.ProcessedVideo;
     processedVideo.src = URL.createObjectURL(videoBlob);
-    console.log('비디오 재구성이 완료되었습니다.');
+    return new Promise((res) => {
+      processedVideo.onloadeddata = () => res(dom.closeModal());
+    });
   } catch (error) {
     console.error('비디오 재구성 중 오류 발생:', error);
   }
