@@ -1,5 +1,6 @@
+import { encodedResult } from '../encode/worker';
 import { dom } from './dom';
-
+const CHUNK_SIZE = 1000;
 class VideoProcessor {
   public encodeWorker: Worker;
   public decodeWorker: Worker;
@@ -20,18 +21,29 @@ class VideoProcessor {
       data: imageData.data.buffer,
     }));
     const buffers = transferableArray.map((item) => item.data);
-    this.encodeWorker.postMessage(
-      { imageDataArray: transferableArray },
-      buffers
-    );
+
+    for (let i = 0; i < buffers.length; i += CHUNK_SIZE) {
+      this.encodeWorker.postMessage(
+        {
+          type: 'chunk',
+          data: transferableArray.slice(i, i + CHUNK_SIZE),
+          isLastChunk: i + CHUNK_SIZE >= buffers.length,
+        },
+        buffers.slice(i, i + CHUNK_SIZE)
+      );
+    }
   }
 
-  decodeVideo(encodedData: any) {
-    this.decodeWorker.postMessage({
-      encodedData: encodedData,
-      width: dom.Canvas.width,
-      height: dom.Canvas.height,
-    });
+  public decodeVideo(encodedData: encodedResult) {
+    for (let i = 0; i < encodedData.length; i += CHUNK_SIZE) {
+      this.decodeWorker.postMessage({
+        type: 'chunk',
+        encodedData: encodedData.slice(i, i + CHUNK_SIZE),
+        width: dom.Canvas.width,
+        height: dom.Canvas.height,
+        isLastChunk: i + CHUNK_SIZE >= encodedData.length,
+      });
+    }
   }
 
   terminate() {

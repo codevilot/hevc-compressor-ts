@@ -47,7 +47,7 @@ export async function createVideoFromDecodedFrames(decodedFrames: ImageData[]) {
     processedVideo.src = URL.createObjectURL(videoBlob);
     processedVideo.controls = true;
 
-    console.log('비디오 재구성이 완료되었습니다. 다운로드 링크를 클릭하세요.');
+    console.log('비디오 재구성이 완료되었습니다.');
   } catch (error) {
     console.error('비디오 재구성 중 오류 발생:', error);
   }
