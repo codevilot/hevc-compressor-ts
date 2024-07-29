@@ -1,4 +1,5 @@
 import { CTU, encodeCTUS } from './ctu';
+import { encodePredict } from './encodePredict';
 
 export const encodeCtx: Worker = self as any;
 
@@ -23,7 +24,7 @@ encodeCtx.addEventListener('message', async (event: MessageEvent) => {
 
 export const encode = async (frames: ImageData[]): Promise<encodedResult> => {
   const ctus = encodeCTUS(frames, DEFAULT_CTU_SIZE);
-  // const predict = encodePredict(ctus);
+  const predict = encodePredict(ctus);
   // const DCT = encodeDCT(ctus);
-  return ctus;
+  return predict;
 };

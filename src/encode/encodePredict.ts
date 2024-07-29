@@ -1,148 +1,176 @@
-import { CTU } from './ctu';
+import { CTU } from "./ctu";
 
-function intraPrediction(
-  ctu: CTU,
-  leftCTU: CTU | null,
-  topCTU: CTU | null
-): CTU {
-  const predictedCTU = new CTU(
-    ctu.width,
-    ctu.height,
-    new Uint8ClampedArray(ctu.width * ctu.height)
-  );
 
-  for (let y = 0; y < ctu.height; y++) {
-    for (let x = 0; x < ctu.width; x++) {
-      let predictedValue = 128; // 기본값
-
-      if (x > 0 && y > 0) {
-        const left = ctu.data[y * ctu.width + (x - 1)];
-        const top = ctu.data[(y - 1) * ctu.width + x];
-        const topLeft = ctu.data[(y - 1) * ctu.width + (x - 1)];
-        predictedValue = Math.round((left + top + topLeft) / 3);
-      } else if (x > 0) {
-        predictedValue = ctu.data[y * ctu.width + (x - 1)];
-      } else if (y > 0) {
-        predictedValue = ctu.data[(y - 1) * ctu.width + x];
-      } else if (leftCTU) {
-        predictedValue = leftCTU.data[y * leftCTU.width + (leftCTU.width - 1)];
-      } else if (topCTU) {
-        predictedValue = topCTU.data[(topCTU.height - 1) * topCTU.width + x];
-      }
-
-      predictedCTU.data[y * ctu.width + x] = predictedValue;
-    }
-  }
-
-  predictedCTU.predictionType = 'INTRA';
-  return predictedCTU;
+function rgb2ycbcr(r: number, g: number, b: number): [number, number, number] {
+  const y = 0.299 * r + 0.587 * g + 0.114 * b;
+  const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+  const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+  return [y, cb, cr];
 }
 
-function interPrediction(currentCTU: CTU, referenceCTUs: CTU[]): CTU {
-  const predictedCTU = new CTU(
-    currentCTU.width,
-    currentCTU.height,
-    new Uint8ClampedArray(currentCTU.width * currentCTU.height)
-  );
+function ycbcr2rgb(y: number, cb: number, cr: number): [number, number, number] {
+  const r = y + 1.402 * (cr - 128);
+  const g = y - 0.344136 * (cb - 128) - 0.714136 * (cr - 128);
+  const b = y + 1.772 * (cb - 128);
+  return [
+    Math.max(0, Math.min(255, Math.round(r))),
+    Math.max(0, Math.min(255, Math.round(g))),
+    Math.max(0, Math.min(255, Math.round(b))),
+  ];
+}
 
-  const searchRange = 16;
-  let bestSAD = Infinity;
-  let bestMV = { x: 0, y: 0 };
+function intraPrediction(block: number[][]): number[][] {
+  const height = block.length;
+  const width = block[0].length;
+  const predicted = Array(height).fill(0).map(() => Array(width).fill(0));
 
-  for (const refCTU of referenceCTUs) {
-    for (let dy = -searchRange; dy <= searchRange; dy++) {
-      for (let dx = -searchRange; dx <= searchRange; dx++) {
-        let SAD = 0;
-
-        for (let y = 0; y < currentCTU.height; y++) {
-          for (let x = 0; x < currentCTU.width; x++) {
-            const currentPixel = currentCTU.data[y * currentCTU.width + x];
-            const refY = y + dy;
-            const refX = x + dx;
-
-            if (
-              refY >= 0 &&
-              refY < refCTU.height &&
-              refX >= 0 &&
-              refX < refCTU.width
-            ) {
-              const refPixel = refCTU.data[refY * refCTU.width + refX];
-              SAD += Math.abs(currentPixel - refPixel);
-            } else {
-              SAD += 255;
-            }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      let count = 0;
+      
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const ny = y + dy;
+          const nx = x + dx;
+          if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+            sum += block[ny][nx];
+            count++;
           }
         }
+      }
+      
+      predicted[y][x] = Math.round(sum / count);
+    }
+  }
 
-        if (SAD < bestSAD) {
-          bestSAD = SAD;
-          bestMV = { x: dx, y: dy };
+  return predicted;
+}
+
+function interPrediction(currentBlock: number[][], referenceBlock: number[][]): [number[][], { x: number; y: number }] {
+  const height = currentBlock.length;
+  const width = currentBlock[0].length;
+  const predicted = Array(height).fill(0).map(() => Array(width).fill(0));
+  
+  let bestMV = { x: 0, y: 0 };
+  let minSAD = Infinity;
+
+  for (let dy = -16; dy <= 16; dy++) {
+    for (let dx = -16; dx <= 16; dx++) {
+      let SAD = 0;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const refY = y + dy;
+          const refX = x + dx;
+          if (refY >= 0 && refY < height && refX >= 0 && refX < width) {
+            SAD += Math.abs(currentBlock[y][x] - referenceBlock[refY][refX]);
+          } else {
+            SAD += Math.abs(currentBlock[y][x] - 128);
+          }
         }
       }
-    }
-  }
-
-  for (let y = 0; y < currentCTU.height; y++) {
-    for (let x = 0; x < currentCTU.width; x++) {
-      const refY = y + bestMV.y;
-      const refX = x + bestMV.x;
-
-      if (
-        refY >= 0 &&
-        refY < referenceCTUs[0].height &&
-        refX >= 0 &&
-        refX < referenceCTUs[0].width
-      ) {
-        predictedCTU.data[y * currentCTU.width + x] =
-          referenceCTUs[0].data[refY * referenceCTUs[0].width + refX];
-      } else {
-        predictedCTU.data[y * currentCTU.width + x] = 128;
+      if (SAD < minSAD) {
+        minSAD = SAD;
+        bestMV = { x: dx, y: dy };
       }
     }
   }
 
-  predictedCTU.predictionType = 'INTER';
-  predictedCTU.motionVector = bestMV;
-  return predictedCTU;
-}
-
-function calculateDifference(ctu1: CTU, ctu2: CTU): number {
-  let diff = 0;
-  for (let i = 0; i < ctu1.data.length; i++) {
-    diff += Math.abs(ctu1.data[i] - ctu2.data[i]);
-  }
-  return diff;
-}
-
-export function encodePredict(ctus: CTU[]): CTU[] {
-  if (ctus.length === 0) return [];
-
-  const predictedCTUs: CTU[] = [];
-  const ctuSize = ctus[0].width; // 첫 번째 CTU의 너비를 CTU 크기로 가정
-  const frameWidth = Math.sqrt(ctus.length) * ctuSize; // 정사각형 프레임 가정
-
-  for (let i = 0; i < ctus.length; i++) {
-    const leftCTU =
-      i % (frameWidth / ctuSize) === 0 ? null : predictedCTUs[i - 1];
-    const topCTU =
-      i < frameWidth / ctuSize ? null : predictedCTUs[i - frameWidth / ctuSize];
-
-    const intraPredictedCTU = intraPrediction(ctus[i], leftCTU, topCTU);
-
-    if (i > 0) {
-      const referenceCTUs = predictedCTUs.slice(0, i);
-      const interPredictedCTU = interPrediction(ctus[i], referenceCTUs);
-
-      const intraDiff = calculateDifference(ctus[i], intraPredictedCTU);
-      const interDiff = calculateDifference(ctus[i], interPredictedCTU);
-
-      predictedCTUs.push(
-        intraDiff < interDiff ? intraPredictedCTU : interPredictedCTU
-      );
-    } else {
-      predictedCTUs.push(intraPredictedCTU);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const refY = y + bestMV.y;
+      const refX = x + bestMV.x;
+      if (refY >= 0 && refY < height && refX >= 0 && refX < width) {
+        predicted[y][x] = referenceBlock[refY][refX];
+      } else {
+        predicted[y][x] = 128;
+      }
     }
   }
 
-  return predictedCTUs;
+  return [predicted, bestMV];
+}
+
+export function encodePredict(ctus: CTU[], previousFrame?: ImageData): CTU[] {
+  ctus.forEach((ctu, index) => {
+    const blockY: number[][] = Array(ctu.height).fill(0).map(() => Array(ctu.width).fill(0));
+    const blockCb: number[][] = Array(ctu.height).fill(0).map(() => Array(ctu.width).fill(0));
+    const blockCr: number[][] = Array(ctu.height).fill(0).map(() => Array(ctu.width).fill(0));
+
+    for (let y = 0; y < ctu.height; y++) {
+      for (let x = 0; x < ctu.width; x++) {
+        const idx = (y * ctu.width + x) * 4;
+        const [yVal, cbVal, crVal] = rgb2ycbcr(
+          ctu.data[idx],
+          ctu.data[idx + 1],
+          ctu.data[idx + 2]
+        );
+        blockY[y][x] = yVal;
+        blockCb[y][x] = cbVal;
+        blockCr[y][x] = crVal;
+      }
+    }
+
+    const predictedIntraY = intraPrediction(blockY);
+    const residualIntraY = blockY.map((row, y) => row.map((val, x) => val - predictedIntraY[y][x]));
+
+    let predictedInterY: number[][] | null = null;
+    let residualInterY: number[][] | null = null;
+    let motionVector: { x: number; y: number } | null = null;
+
+    if (previousFrame) {
+      const referenceBlockY = Array(ctu.height).fill(0).map(() => Array(ctu.width).fill(0));
+      const startX = (index * ctu.width) % previousFrame.width;
+      const startY = Math.floor((index * ctu.width) / previousFrame.width) * ctu.height;
+      
+      for (let y = 0; y < ctu.height; y++) {
+        for (let x = 0; x < ctu.width; x++) {
+          const idx = ((startY + y) * previousFrame.width + (startX + x)) * 4;
+          referenceBlockY[y][x] = previousFrame.data[idx];
+        }
+      }
+      
+      [predictedInterY, motionVector] = interPrediction(blockY, referenceBlockY);
+      residualInterY = blockY.map((row, y) => row.map((val, x) => val - predictedInterY[y][x]));
+    }
+
+    let finalResidualY: number[][];
+    let predictionType: 'INTRA' | 'INTER';
+
+    if (predictedInterY && residualInterY) {
+      const intraEnergy = residualIntraY.flat().reduce((a, b) => a + b * b, 0);
+      const interEnergy = residualInterY.flat().reduce((a, b) => a + b * b, 0);
+      if (interEnergy < intraEnergy) {
+        finalResidualY = residualInterY;
+        predictionType = 'INTER';
+      } else {
+        finalResidualY = residualIntraY;
+        predictionType = 'INTRA';
+      }
+    } else {
+      finalResidualY = residualIntraY;
+      predictionType = 'INTRA';
+    }
+
+    for (let y = 0; y < ctu.height; y++) {
+      for (let x = 0; x < ctu.width; x++) {
+        const idx = (y * ctu.width + x) * 4;
+        const predictedY = predictionType === 'INTRA' ? predictedIntraY[y][x] : (predictedInterY ? predictedInterY[y][x] : predictedIntraY[y][x]);
+        const [r, g, b] = ycbcr2rgb(
+          Math.max(0, Math.min(255, predictedY + finalResidualY[y][x])),
+          blockCb[y][x],
+          blockCr[y][x]
+        );
+        ctu.data[idx] = r;
+        ctu.data[idx + 1] = g;
+        ctu.data[idx + 2] = b;
+        ctu.data[idx + 3] = 255; 
+      }
+    }
+
+    ctu.predictionType = predictionType;
+    ctu.motionVector = motionVector;
+  });
+
+  return ctus;
 }
