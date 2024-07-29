@@ -39,3 +39,10 @@ pnpm start
 - HTML5 Video and Canvas API
 - MediaRecorder API
 - Web Workers (for performance optimization)
+
+## Tutorial Video
+
+
+https://github.com/user-attachments/assets/9c672e57-9bbb-4cfc-a9c4-d919493ce91d
+
+
